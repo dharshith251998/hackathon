@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIT Hackathon</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .page {
+            display: none;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .page.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-title {
+            font-size: 4rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: fadeIn 1s ease-in;
+        }
+
+        .action-button {
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            background: white;
+            color: #764ba2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .action-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: 20px;
+            color: #333;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .timer {
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .submitted-data {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+
+        .thank-you {
+            text-align: center;
+            animation: fadeIn 1s ease-in;
+        }
+
+        .thank-you h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .already-registered {
+            margin-top: 1rem;
+            text-align: center;
+            color: #764ba2;
+            cursor: pointer;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .close {
+            position: absolute;
+            right: 1.5rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- Home Page -->
+    <div id="homePage" class="page active">
+        <h1 class="main-title">AIT HACKATHON</h1>
+        <button class="action-button" onclick="showRegistrationModal()">Register Now</button>
+    </div>
+
+    <!-- Topic Selection Page -->
+    <div id="topicPage" class="page">
+        <div class="card">
+            <h2 class="mb-4">Select/Submit Your Topic</h2>
+            <form id="topicForm" onsubmit="handleTopicSelection(event)">
+				<input type="hidden" name="Time" id="Time">
+                <div class="mb-3">
+                    <input type="text" class="form-control" name="UID" placeholder="Team ID" required>
+                </div>
+                <div class="mb-3">
+                    <select class="form-control" name="Domain" required>
+                        <option value="">Choose Domain</option>
+                        <option value="AIML">AIML Domain</option>
+                        <option value="FullStack">Full Stack Development Domain</option>
+                        <option value="CyberSecurity">Cyber Security Domain</option>
+                        <option value="Blockchain">Blockchain Domain</option>
+                    </select>
+                </div>
+                <button type="button" class="action-button mb-3" onclick="generateRandomProject()">
+                    Choose Project
+                </button>
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="projectTitle" name="Title" placeholder="Project Title" required readonly>
+                </div>
+                <button type="submit" class="action-button">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Problem Statement Page -->
+    <div id="problemPage" class="page">
+        <div class="card">
+            <h2 class="mb-4">Submit Problem Statement</h2>
+            <form id="problemStatementForm" onsubmit="handleProblemStatement(event)">
+				<input type="hidden" name="Time" id="Time">
+                <div class="mb-3">
+                    <input type="text" class="form-control" name="UID" placeholder="Team ID" required>
+                </div>
+                <div class="mb-3">
+                    <input type="text" class="form-control" name="Title" placeholder="Title" required>
+                </div>
+                <div class="mb-3">
+                    <textarea class="form-control" name="ProblemStatement" rows="5" placeholder="Enter your problem statement" required></textarea>
+                </div>
+                <button type="submit" class="action-button">Submit</button>
+            </form>
+            <div id="submittedData" class="submitted-data" style="display: none;">
+                <h3>Submitted Data:</h3>
+                <div id="submittedContent"></div>
+            </div>
+            <div id="timer" class="timer" style="display: none;">00:00:00</div>
+            <button id="endButton" class="action-button" onclick="goToThankYouPage()" style="display: none;">END</button>
+        </div>
+    </div>
+
+    <!-- Thank You Page -->
+    <div id="thankYouPage" class="page">
+        <div class="thank-you">
+            <h1>Thank You for Participating!</h1>
+            <p>Your submission has been recorded successfully.</p>
+        </div>
+    </div>
+	
+	<!-- Unique ID Modal -->
+    <div id="uniqueIdModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('uniqueIdModal')">&times;</span>
+            <h2 class="mb-4">Team Unique ID</h2>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="uniqueIdDisplay" readonly>
+                <button class="btn btn-outline-secondary" type="button" onclick="copyUniqueId()">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+	
+    <!-- Registration Modal -->
+    <div id="registrationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('registrationModal')">&times;</span>
+            <h2 class="modal-title">Team Registration</h2>
+            <form id="registrationForm" onsubmit="handleRegistration(event)">
+                <input type="hidden" name="UID" id="UID">
+                <input type="hidden" name="Time" id="Time">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="College Name" placeholder="College Name" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="Place" placeholder="Place" required>
+                </div>
+                <div class="input-group">
+                    <input type="email" class="form-control" name="Email id" placeholder="Email ID" required>
+                </div>
+                <div class="input-group">
+                    <input type="tel" class="form-control" name="Phone Number" placeholder="Phone Number" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="Name1" placeholder="Participant Name 1" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="Name2" placeholder="Participant Name 2" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="Name3" placeholder="Participant Name 3" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="Name4" placeholder="Participant Name 4" required>
+                </div>
+                <button type="submit" class="action-button">Submit</button>
+            </form>
+            <div class="already-registered">
+                <a href="#" onclick="showLoginModal()">Already Registered?</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('loginModal')">&times;</span>
+            <h2 class="modal-title">Login</h2>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="UID" placeholder="Enter Team ID" required>
+                </div>
+                <button type="submit" class="action-button">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Project data and functions remain the same as in your original code
+        const projects = {
+            AIML: [/* Your project lists */],
+            FullStack: [/* Your project lists */],
+            CyberSecurity: [/* Your project lists */],
+            Blockchain: [/* Your project lists */]
+        };
+
+        let projectSelectionCount = {};
+        let timerInterval;
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+
+        function showLoginModal() {
+            closeModal('registrationModal');
+            showModal('loginModal');
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const uid = event.target.elements.UID.value;
+            // Here you might want to validate the UID
+            closeModal('loginModal');
+        }
+
+        function copyUniqueId() {
+            const uniqueIdInput = document.getElementById('uniqueIdDisplay');
+            uniqueIdInput.select();
+            document.execCommand('copy');
+            alert('Unique ID copied to clipboard!');
+			showPage('topicPage');
+        }
+		
+        function handleRegistration(event) {
+            event.preventDefault();
+            const UID = generateUniqueId();
+            document.getElementById('UID').value = UID;
+            const Time = new Date().toLocaleString();
+            document.getElementById('Time').value = Time;
+
+            $.ajax({
+                url: "https://api.apispreadsheets.com/data/EoFIgH1yQ1s2YcDH/",
+                type: "POST",
+                data: $("#registrationForm").serializeArray(),
+                success: function() {
+				alert("Form Data Submitted :)");
+					document.getElementById('uniqueIdDisplay').value = UID;
+					closeModal('registrationModal');
+					showModal('uniqueIdModal');
+                    showPage('topicPage');
+                },
+                error: function() {
+                    alert("There was an error :(");
+                }
+            });
+        }
+
+        function handleTopicSelection(event) {
+            event.preventDefault();
+            const Time = new Date().toLocaleString();
+            document.getElementById('Time').value = Time;
+            $.ajax({
+                url: "https://api.apispreadsheets.com/data/5itE4iGSwTxnaiG4/",
+                type: "POST",
+                data: $("#topicForm").serializeArray(),
+                success: function() {
+                    alert('Topic selection saved successfully!');
+                    showPage('problemPage');
+                },
+                error: function() {
+                    alert("There was an error :(");
+                }
+            });
+        }
+
+        function handleProblemStatement(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+			const Time = new Date().toLocaleString();
+            document.getElementById('Time').value = Time;
+            $.ajax({
+                url: "https://api.apispreadsheets.com/data/m18pP8mcUxevScIv/",
+                type: "POST",
+                data: $("#problemStatementForm").serializeArray(),
+                success: function() {
+                    alert('Problem statement submitted successfully!');
+                    displaySubmittedData(formData);
+                    startTimer();
+                },
+                error: function() {
+                    alert("There was an error :(");
+                }
+            });
+        }
+
+        function displaySubmittedData(formData) {
+            const submittedContent = document.getElementById('submittedContent');
+            submittedContent.innerHTML = `
+                <p><strong>Team ID:</strong> ${formData.get('UID')}</p>
+                <p><strong>Title:</strong> ${formData.get('Title')}</p>
+                <p><strong>Problem Statement:</strong> ${formData.get('ProblemStatement')}</p>
+            `;
+            document.getElementById('submittedData').style.display = 'block';
+            document.getElementById('timer').style.display = 'block';
+            document.getElementById('endButton').style.display = 'block';
+            document.getElementById('problemStatementForm').style.display = 'none';
+        }
+
+        function startTimer() {
+            let seconds = 0;
+            timerInterval = setInterval(() => {
+                seconds++;
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                document.getElementById('timer').textContent = 
+                    `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function goToThankYouPage() {
+            clearInterval(timerInterval);
+            showPage('thankYouPage');
+        }
+
+        function generateUniqueId() {
+            const timestamp = Date.now().toString().slice(-3);
+            return `AITHackaTON-${timestamp}`;
+        }
+
+        function generateRandomProject() {
+            const domainSelect = document.querySelector('select[name="Domain"]');
+            const projectTitleInput = document.getElementById('projectTitle');
+            const teamIdInput = document.querySelector('#topicForm input[name="UID"]');
+            
+            if (!teamIdInput.value) {
+                alert('Please enter Team ID first');
+                return;
+            }
+
+            if (!domainSelect.value) {
+                alert('Please select a domain first');
+                return;
+            }
+
+            if (projectSelectionCount[teamIdInput.value] >= 3) {
+                alert('You have already used all 3 attempts to choose a project');
+                return;
+            }
+
+            const selectedDomain = domainSelect.value;
+            const domainProjects = projects[selectedDomain];
+            const randomProject = domainProjects[Math.floor(Math.random() * domainProjects.length)];
+            projectTitleInput.value = randomProject;
+
+            projectSelectionCount[teamIdInput.value] = (projectSelectionCount[teamIdInput.value] || 0) + 1;
+            alert(`You have ${3 - projectSelectionCount[teamIdInput.value]} attempts remaining`);
+        }
+
+        // Complete project data
+        projects.AIML = [
+            "Predictive Maintenance using Machine Learning",
+            "Emotion-Driven Assistive Chatbot",
+            "Automated Visual Defect Detection",
+            "Conversational AI for Personalized Wellness Coaching",
+            "Multimodal Sentiment Analysis for Enhanced Customer Experience",
+            "Generative Music Composer using Deep Learning",
+            "Intelligent Traffic Signal Optimization",
+            "Image Captioning for Visually Impaired Users",
+            "Fraud Detection in Financial Transactions",
+            "Automated Radiological Diagnosis Support System",
+            "Conversational Tutor for STEM Education",
+            "Activity Recognition using Wearable Sensors",
+            "Automated Video Summarization for Surveillance",
+            "Smart Farming with Computer Vision",
+            "Intelligent Robotics for Search and Rescue"
+        ];
+
+        projects.FullStack = [
+            "Decentralized Social Media Platform",
+            "Smart City Infrastructure Monitoring App",
+            "Personalized Financial Portfolio Manager",
+            "Interactive Data Visualization Dashboard",
+            "Multilingual E-commerce Storefront",
+            "Collaborative Project Management Tool",
+            "Interactive AR/VR-based Educational Experience",
+            "Blockchain-based Supply Chain Traceability",
+            "Intelligent Job Search and Matching Platform",
+            "Environmental Impact Tracking and Reporting App",
+            "Voice-Controlled Smart Home Automation",
+            "Gamified Fitness and Wellness Application",
+            "Secure E-voting System with Blockchain",
+            "AI-powered Personalized Recipe Recommendation",
+            "Augmented Reality Museum Tour Guide"
+        ];
+
+        projects.CyberSecurity = [
+            "Secure Messaging and File Sharing Platform",
+            "Automated Vulnerability Assessment and Remediation",
+            "Blockchain-based Identity and Access Management",
+            "Malware Detection using Machine Learning",
+            "Secure IoT Device Management System",
+            "Deception-based Intrusion Prevention",
+            "Encrypted Cloud Storage with Zero-Knowledge Proof",
+            "Secure Remote Workplace Monitoring",
+            "Blockchain-powered Digital Rights Management",
+            "AI-driven Anomaly Detection for Network Security",
+            "Secure Serverless Computing Framework",
+            "Biometric-based Multi-factor Authentication",
+            "Secure Supply Chain Traceability using Blockchain",
+            "Ethical Hacking Training and Simulation Platform",
+            "Privacy-preserving Federated Learning"
+        ];
+
+        projects.Blockchain = [
+            "Decentralized Green Energy Trading Platform",
+            "Blockchain-based Luxury Goods Provenance",
+            "Tokenized Real Estate Investment Platform",
+            "Blockchain-powered Decentralized Voting System",
+            "Peer-to-Peer Sharing Economy Marketplace",
+            "Blockchain-enabled Donation Tracking and Transparency",
+            "Decentralized Clinical Trials Management",
+            "Blockchain-based Intellectual Property Rights Management",
+            "Decentralized Crowdfunding and Fundraising Platform",
+            "Blockchain-powered Decentralized Identity Management",
+            "Supply Chain Transparency and Traceability using Blockchain",
+            "Blockchain-enabled Decentralized Insurance Platform",
+            "Blockchain-based Decentralized Social Media Network",
+            "Tokenized Loyalty and Rewards Program",
+            "Blockchain-powered Decentralized Cloud Storage"
+        ];
+
+        // Prevent back navigation
+        history.pushState(null, null, location.href);
+        window.onpopstate = function(event) {
+            history.go(1);
+        };
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
+            }
+        }
+
+		function showRegistrationModal() {
+            showModal('registrationModal');
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Disable right-click
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+            
+            // Disable F5 key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
